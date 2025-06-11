@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "name": "tzatziki",
+    "quantity": 1,
+    "price": 1,
+    "type": "Perishable",
+    "expiryDate": "2025-10-10T00:00:00.000Z"
+  },
+  {
+    "name": "tostitos",
+    "quantity": 1,
+    "price": 7,
+    "type": "NonPerishable"
+  },
+  {
+    "name": "coconut water",
+    "quantity": 1,
+    "price": 2,
+    "type": "Perishable",
+    "expiryDate": "2025-06-11T09:49:51.570Z"
+  }
+]

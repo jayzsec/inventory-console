@@ -1,13 +1,12 @@
 // item.js
-/**
- * Represents a base item in the inventory.
- * This class is not meant to be instantiated directly.
- */
-export class Item {
+
+//  Represents a base item in the inventory.
+//  This class is not meant to be instantiated directly.
+class Item {
     // Constructor for the Item class.
     constructor(name, quantity, price) {
         if (this.constructor === Item) {
-            throw new Error("Abstract classes can't be instantiated.");
+            throw new Error("You should not make an instance of ITEM! This is an ABSTRACT class");
         }
         this.name = name;
         this.quantity = quantity;
@@ -22,7 +21,7 @@ export class Item {
 
 
 // Represents a perishable item, which is a subclass of Item.
-export class PerishableItem extends Item {
+class PerishableItem extends Item {
     // Constructor for the PerishableItem class.
     constructor(name, quantity, price, expiryDate) {
         super(name, quantity, price);
@@ -38,9 +37,15 @@ export class PerishableItem extends Item {
 }
 
 // Represents a non-perishable item, which is a subclass of Item.
-export class NonPerishableItem extends Item {
+class NonPerishableItem extends Item {
     // Constructor for the NonPerishableItem class.
     constructor(name, quantity, price) {
         super(name, quantity, price);
     }
 }
+
+module.exports = {
+    Item,
+    PerishableItem,
+    NonPerishableItem
+};

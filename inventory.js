@@ -1,22 +1,20 @@
 // inventory.js
 // Inventory Management System Logic
-import fs from 'fs';
-import inquirer from 'inquirer';
-import chalk from 'chalk';
-import { mainMenu } from './index.js';
-import { Item, PerishableItem, NonPerishableItem } from './item.js';
+const fs = require('fs');
+const kleur = require('kleur');
+const { Item, PerishableItem, NonPerishableItem } = require('./item.js');
 
 // Class to manage inventory operations
-export class Inventory {
+class Inventory {
     constructor() {
         this.items = [];
         this.transactionLog = [];
         this.loadInventory();
     }
 
-    // Loads inventory from a JSON file.
-    // Change JSON to TXT later
-    // It recreates the item objects based on their type. 
+    
+    //  Loads inventory from a JSON file.
+    //  It recreates the item objects based on their type. 
     loadInventory() {
         try {
             const data = fs.readFileSync("./inventory.json", 'utf8');
@@ -55,10 +53,10 @@ export class Inventory {
     }
 
     
-    // Logs a transaction to the transaction log.     
+    // Logs a transaction to the transaction log.
     logTransaction(transaction) {
         this.transactionLog.push(`${new Date().toISOString()}: ${transaction}`);
-        console.log(chalk.gray(`[LOG] ${transaction}`));
+        console.log(kleur.gray(`[LOG] ${transaction}`));
     }
 
     
@@ -69,9 +67,7 @@ export class Inventory {
         this.saveInventory();
     }
 
-    
     // Returns all items in the inventory.
-    // returns { Item[] }
     viewItems() {
         this.logTransaction("Viewed all items.");
         return this.items;
@@ -80,20 +76,20 @@ export class Inventory {
     
     // Updates an item in the inventory.
     updateItem(index, updatedItem) {
-        // index - The index of the item to update
+        // index - The index of the item to update.
         // updatedItem - The updated item.
-        this.items[index] = updatedItem; 
+        this.items[index] = updatedItem;
         this.logTransaction(`Updated item: ${updatedItem.name}`);
         this.saveInventory();
     }
 
-    
-    //  Deletes an item from the inventory.
+    // Deletes an item from the inventory.
     deleteItem(index) {
-        // index - The index of the item to delete
         const itemName = this.items[index].name;
         this.items.splice(index, 1);
         this.logTransaction(`Deleted item: ${itemName}`);
         this.saveInventory();
     }
 }
+
+module.exports = { Inventory };
