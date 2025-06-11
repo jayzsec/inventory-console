@@ -1,0 +1,22 @@
+[
+  {
+    "name": "b",
+    "quantity": "1",
+    "price": "1"
+  },
+  {
+    "name": "board",
+    "quantity": "1",
+    "price": "2"
+  },
+  {
+    "name": "meta",
+    "quantity": "20",
+    "price": "120"
+  },
+  {
+    "name": "google",
+    "quantity": "10",
+    "price": "2"
+  }
+]
