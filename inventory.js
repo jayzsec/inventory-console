@@ -3,137 +3,97 @@
 import fs from 'fs';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import inventoryData from './inventory.json' with {type: 'json'};
 import { mainMenu } from './index.js';
+import { Item, PerishableItem, NonPerishableItem } from './item.js';
 
 // Class to manage inventory operations
 export class Inventory {
     constructor() {
+        this.items = [];
+        this.transactionLog = [];
         this.loadInventory();
     }
 
+    // Loads inventory from a JSON file.
+    // Change JSON to TXT later
+    // It recreates the item objects based on their type. 
     loadInventory() {
-        if (inventoryData && inventoryData.length >= 0) {
-            this.items = inventoryData;
-            console.log('Inventory loaded from JSON data.');
-        } else {
+        try {
+            const data = fs.readFileSync("./inventory.json", 'utf8');
+            const inventoryData = JSON.parse(data);
+            this.items = inventoryData.map(itemData => {
+                if (itemData.type === 'Perishable') {
+                    return new PerishableItem(itemData.name, itemData.quantity, itemData.price, new Date(itemData.expiryDate));
+                }
+                return new NonPerishableItem(itemData.name, itemData.quantity, itemData.price);
+            });
+            this.logTransaction("Inventory loaded from JSON data.");
+        } catch (err) {
             this.items = [];
+            this.logTransaction("No inventory file found. Starting with an empty inventory.");
         }
     }
 
+    
+    // Saves the current inventory to a JSON file.
+    // It stores the type of each item so it can be correctly loaded later.
     saveInventory() {
-        fs.writeFileSync("./inventory.json" , JSON.stringify(this.items, null, 2));
+        const inventoryData = this.items.map(item => {
+            const itemData = {
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                type: item instanceof PerishableItem ? 'Perishable' : 'NonPerishable'
+            };
+            if (item instanceof PerishableItem) {
+                itemData.expiryDate = item.expiryDate;
+            }
+            return itemData;
+        });
+        fs.writeFileSync("./inventory.json", JSON.stringify(inventoryData, null, 2));
+        this.logTransaction("Inventory saved to JSON file.");
     }
 
+    
+    // Logs a transaction to the transaction log.     
+    logTransaction(transaction) {
+        this.transactionLog.push(`${new Date().toISOString()}: ${transaction}`);
+        console.log(chalk.gray(`[LOG] ${transaction}`));
+    }
+
+    
+    // Adds an item to the inventory.
     addItem(item) {
         this.items.push(item);
+        this.logTransaction(`Added item: ${item.name}`);
         this.saveInventory();
     }
 
+    
+    // Returns all items in the inventory.
+    // returns { Item[] }
     viewItems() {
+        this.logTransaction("Viewed all items.");
         return this.items;
     }
 
+    
+    // Updates an item in the inventory.
     updateItem(index, updatedItem) {
-        this.items[index] = updatedItem;
+        // index - The index of the item to update
+        // updatedItem - The updated item.
+        this.items[index] = updatedItem; 
+        this.logTransaction(`Updated item: ${updatedItem.name}`);
         this.saveInventory();
     }
 
+    
+    //  Deletes an item from the inventory.
     deleteItem(index) {
+        // index - The index of the item to delete
+        const itemName = this.items[index].name;
         this.items.splice(index, 1);
+        this.logTransaction(`Deleted item: ${itemName}`);
         this.saveInventory();
     }
-}
-
-
-// Function to add an item to the inventory
-export function addItem() {
-    console.clear();
-    inquirer.prompt([
-        { type: 'input', name: 'name', message: 'Enter item name:' },
-        { type: 'input', name: 'quantity', message: 'Enter item quantity:' },
-        { type: 'input', name: 'price', message: 'Enter item price:' }
-    ]).then(answers => {
-        const i = new Inventory();
-        i.addItem(answers);
-        console.log(chalk.green('Item added successfully!'));
-        mainMenu();
-    });
-}
-
-// Function to view all items in the inventory
-export function viewItems() {
-    console.clear();
-    const i = new Inventory();
-    const items = i.viewItems();
-    if (items.length === 0) {
-        console.log(chalk.yellow('No items in inventory.'));
-    } else {
-        console.table(items);
-    }
-    inquirer.prompt([
-        { type: 'confirm', name: 'back', message: 'Go back to main menu?' }
-    ]).then(answers => {
-        if (answers.back) {
-            mainMenu();
-        } else {
-            process.exit(0);
-        }
-    });
-}
-
-// Function to update an item in the inventory
-export function updateItem() {
-    console.clear();
-    const i = new Inventory();
-    const items = i.viewItems();
-    if (items.length === 0) {
-        console.log(chalk.yellow('No items to update.'));
-        mainMenu();
-        return;
-    }
-    inquirer.prompt([
-        {
-            type: 'list',
-            name: 'index',
-            message: 'Select an item to update:',
-            choices: items.map((item, index) => ({ name: `${item.name} (Quantity: ${item.quantity}, Price: ${item.price})`, value: index }))
-        },
-        { type: 'input', name: 'name', message: 'Enter new item name:' },
-        { type: 'input', name: 'quantity', message: 'Enter new item quantity:' },
-        { type: 'input', name: 'price', message: 'Enter new item price:' }
-    ]).then(answers => {
-        i.updateItem(answers.index, { name: answers.name, quantity: answers.quantity, price: answers.price });
-        console.log(chalk.green('Item updated successfully!'));
-        mainMenu();
-    });
-}
-
-// Function to delete an item from the inventory
-export function deleteItem() {
-    console.clear();
-    const i = new Inventory();
-    const items = i.viewItems();
-    if (items.length === 0) {
-        console.log(chalk.yellow('No items to delete.'));
-        mainMenu();
-        return;
-    }
-    inquirer.prompt([
-        {
-            type: 'list',
-            name: 'index',
-            message: 'Select an item to delete:',
-            choices: items.map((item, index) => ({ name: `${item.name} (Quantity: ${item.quantity}, Price: ${item.price})`, value: index }))
-        },
-        { type: 'confirm', name: 'confirm', message: 'Are you sure you want to delete this item?' }
-    ]).then(answers => {
-        if (answers.confirm) {
-            i.deleteItem(answers.index);
-            console.log(chalk.green('Item deleted successfully!'));
-        } else {
-            console.log(chalk.yellow('Deletion cancelled.'));
-        }
-        mainMenu();
-    });
 }
